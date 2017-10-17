@@ -1,7 +1,7 @@
 {
-  "name": "es6-scaffolding",
+  "name": "mandelbrot-set",
   "version": "1.0.0",
-  "description": "ES6 Webpack 2 project scaffolding",
+  "description": "ES6 + d3 mandelbrot set",
   "main": "webpack.config.json",
   "devDependencies": {
     "babel-cli": "^6.26.0",
@@ -28,12 +28,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jrfferreira/es6-scaffolding.git"
+    "url": "git+https://github.com/jrfferreira/mandelbrot-set.git"
   },
   "author": "jrfferreira",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/jrfferreira/es6-scaffolding/issues"
+    "url": "https://github.com/jrfferreira/mandelbrot-set/issues"
   },
-  "homepage": "https://github.com/jrfferreira/es6-scaffolding#readme"
+  "homepage": "https://github.com/jrfferreira/mandelbrot-set#readme"
 }
