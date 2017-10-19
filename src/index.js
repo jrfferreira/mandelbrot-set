@@ -1,6 +1,7 @@
 import * as d3 from 'd3'
 
 class Experiment {
+  performance = global.performance
   mouse = {
     x: 0,
     y: 0
@@ -71,6 +72,27 @@ class Experiment {
       ])
   }
 
+  getPerformanceDuration = () => {
+    this.performance.measure(
+      'draw',
+      'draw-start',
+      'draw-end'
+    )
+
+    try {
+      const measure = this.performance.getEntriesByName('draw')
+      this.performance.clearMarks()
+      this.performance.clearMeasures()
+      if(measure && measure[0]) {
+        return `${(measure[0].duration/1000).toFixed(4)}s`
+      } else {
+        return 'leak'
+      }
+    } catch(e) {
+      return 'leak'
+    }
+  }
+
   drawAxis() {
     const x0 = 0
     const x1 = this.width
@@ -95,8 +117,6 @@ class Experiment {
     this.canvas.lineTo(this.xScale.invert(0), y0)
     this.canvas.strokeStyle = strokeColor
     this.canvas.stroke()
-
-
 
     // Draw X tick axis
     this.canvas.setLineDash([1,2])
@@ -136,22 +156,29 @@ class Experiment {
     //labels
     const xm = +4
     const ym = +12
+
     this.canvas.font = "12px Arial"
     this.canvas.fillStyle = strokeColor
-    this.canvas.fillText(`i= ${this.maxIterations}`, this.width-40, this.height-15)
 
-    this.canvas.font = "10px Arial"
+    const xRange = this.xScale.range()
+    const yRange = this.yScale.range()
 
-    this.canvas.fillText('-1i', x0+xm, this.yScale.invert(-1)+ym)
-    this.canvas.fillText('0i', x0+xm, this.yScale.invert(0)+ym)
-    this.canvas.fillText('1i', x0+xm, this.yScale.invert(1)+ym)
+    this.canvas.textAlign = 'start'
+
+    this.canvas.fillText(`t = ${this.getPerformanceDuration()}`, 10, this.height-(14*4))
+    this.canvas.fillText(`n = ${this.maxIterations}`, 10, this.height-(14*3))
+    this.canvas.fillText(`x = [ ${xRange[0]}, ${xRange[1]} ]`, 10, this.height-(14*2))
+    this.canvas.fillText(`y = [ ${yRange[1]}, ${yRange[0]} ]`, 10, this.height-14)
 
     this.canvas.fillText('-2', this.xScale.invert(-2)+xm, y0+ym)
     this.canvas.fillText('-1', this.xScale.invert(-1)+xm, y0+ym)
     this.canvas.fillText('0', this.xScale.invert(0)+xm, y0+ym)
     this.canvas.fillText('1', this.xScale.invert(1)+xm, y0+ym)
 
-
+    this.canvas.textAlign = 'end'
+    this.canvas.fillText('-1i', x1-xm, this.yScale.invert(-1)+ym)
+    this.canvas.fillText('0i', x1-xm, this.yScale.invert(0)+ym)
+    this.canvas.fillText('1i', x1-xm, this.yScale.invert(1)+ym)
   }
 
   getColor (_x, _y) {
@@ -200,13 +227,13 @@ class Experiment {
     this.iPlasmaScale = d3.scaleSequential(d3.interpolateRainbow)
       .domain([0, this.maxIterations])
 
-    console.time(`rendering Mandelbrot set over ${this.maxIterations} iterations`)
+    this.performance.mark('draw-start')
     for(let x = 0; x < this.width; x++) {
       for(let y = 0; y < this.height; y++) {
         this.paintPixel(x,y)
       }
     }
-    console.timeEnd(`rendering Mandelbrot set over ${this.maxIterations} iterations`)
+    this.performance.mark('draw-end')
 
   }
 
@@ -237,8 +264,9 @@ class Experiment {
     const w = this.width*this.zoomScale
     const h = this.height*this.zoomScale
 
-    const x = mouseX - w/2
-    const y = mouseY - h/2
+    // Forcing focus to stay inside screen
+    const x = Math.min(Math.max((mouseX - w/2), 0), this.width - w)
+    const y = Math.min(Math.max((mouseY - h/2), 0), this.height - h)
 
     return { x, y, w, h }
   }
@@ -262,7 +290,7 @@ class Experiment {
   onClick = (e) => {
     this.updateMousePosition(e)
     this.drawZoomPreview()
-    this.updateZoom()
+    setTimeout(this.updateZoom, 20)
   }
 }
 
